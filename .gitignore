@@ -1,0 +1,9 @@
+*.retry
+
+/tmp
+
+.cache
+*.pyc
+*.swp
+.vagrant
+*.log
