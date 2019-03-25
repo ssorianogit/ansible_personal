@@ -1,2 +1,13 @@
 ---
-# vars file for prometheus
+prometheus_version: 2.8.0
+
+prometheus_config_dir: /etc/prometheus
+prometheus_db_dir: /var/lib/prometheus
+
+prometheus_web_listen_address: "0.0.0.0:9090"
+prometheus_web_external_url: ''
+
+prometheus_storage_retention: "30d"
+prometheus_storage_retention_size: "0"
+
+prometheus_config_flags_extra: {}

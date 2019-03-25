@@ -1,8 +1,9 @@
 ---
 - hosts: prometheus
+  gather_facts: "true"
   become: yes
   roles:
     - { role: packages }
     - { role: nginx }
-    #- { role: prometheus}
+    - { role: prometheus}
     #- { role: grafana }
