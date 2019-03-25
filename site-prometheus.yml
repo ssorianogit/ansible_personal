@@ -1,0 +1,6 @@
+---
+- hosts: prometheus
+  become: yes
+  roles:
+    - { role: packages }
+    - { role: nginx }
