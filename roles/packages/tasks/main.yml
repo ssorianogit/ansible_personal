@@ -1,0 +1,36 @@
+---
+- name: "Disable automatic package list update"
+  lineinfile:
+    name: /etc/apt/apt.conf.d/10periodic
+    regexp: '^APT::Periodic::Update-Package-List'
+    line: 'APT::Periodic::Update-Package-Lists "0";'
+
+- name: "Ensure that dpkg is clean"
+  command: dpkg --configure -a
+  changed_when: false
+
+- name: "Install common packages"
+  apt:  
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  with_items:
+    - vim
+    - zip
+    - curl
+    - wget
+    - jq
+    - git
+    - htop
+    - sysstat
+    - iotop
+    - lvm2
+    - xfsprogs
+    - python3-pip
+    - apt-transport-https
+
+- name: "Install Python packages"
+  pip:
+    name: "{{item}}"
+  with_items:
+    - awscli

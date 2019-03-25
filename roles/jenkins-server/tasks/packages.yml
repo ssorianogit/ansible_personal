@@ -1,0 +1,16 @@
+---
+- name: "Build packages"
+  package:
+    name: "{{ item }}"
+  with_items: "{{ jenkins_build_packages }}"
+
+- name: "Python packages"
+  pip:
+    name: "{{ item }}"
+  with_items:
+    - aiohttp
+    - boto3
+
+- name: "Force java version"
+  command: "/usr/bin/update-alternatives --set java /usr/lib/jvm/java-8-openjdk-amd64/jre/bin/java"
+  register: command_result

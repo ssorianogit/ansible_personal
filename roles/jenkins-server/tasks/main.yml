@@ -1,0 +1,77 @@
+---
+# tasks file for jenkins
+#
+- import_tasks: system_config.yml
+- import_tasks: packages.yml
+
+- name: "Add Jenkins Apt key"
+  apt_key:
+    url=https://jenkins-ci.org/debian/jenkins-ci.org.key
+
+- name: "Add jenkins repository"
+  apt_repository:
+    repo: deb http://pkg.jenkins.io/debian-stable binary/
+    state: present
+    filename: "jenkins.list"
+    update_cache: "yes"
+
+- name: "Install Jenkins"
+  apt:
+    name: "jenkins={{ jenkins_version }}"
+
+- name: "Jenkins server started"
+  shell: "curl -D - --silent --max-time 5 {{jenkins_url}}/cli/"
+  args:
+    warn: false
+  register: result
+  until: (result.stdout.find("403 Forbidden") != -1) or (result.stdout.find("200 OK") != -1) and (result.stdout.find("Please wait while") == -1)
+  retries: 5
+  delay: 60
+  changed_when: false
+
+- name: "Jenkins-cli jarfile"
+  get_url:
+    url: "{{ jenkins_url }}/jnlpJars/jenkins-cli.jar"
+    dest: "{{ jenkins_cli }}"
+  register: jarfile_get
+  until: "'OK' in jarfile_get.msg or 'file already exists' in jarfile_get.msg"
+  retries: 5
+  delay: 10
+
+- name: "Jenkins backup script"
+  template:
+    src: backup-jenkins-home.sh.j2
+    dest: /usr/local/bin/backup-jenkins-home.sh
+    mode: 750
+
+- name: "Do not run Jenkins setup Wizard"
+  lineinfile:
+    dest: '/etc/default/jenkins'
+    insertafter: '^JAVA_ARGS='
+    regexp: "{{ item.regexp }}"
+    line: "{{ item.line }}"
+  with_items:
+    - { regexp: '^JAVA_ARGS=\"\$JAVA_ARGS', line: 'JAVA_ARGS="$JAVA_ARGS -Djenkins.install.runSetupWizard=false"' }
+  register: jenkins_parameters_config
+
+- name: "Groovy init script"
+  template:
+    src: basic-security.groovy
+    dest: "{{ jenkins_home}}/init.groovy.d/basic-security.groovy"
+    mode: 750
+
+- name: "Immediately restart Jenkins on init config changes."
+  service: 
+    name: jenkins 
+    state: restarted
+  when: jenkins_parameters_config.changed
+
+- name: "Remove Jenkins security init scripts after first startup."
+  file:
+    path: "{{ jenkins_home }}/init.groovy.d/basic-security.groovy"
+    state: absent
+
+- meta: flush_handlers
+- import_tasks: jenkins_site.yml
+- import_tasks: plugins.yml
+
