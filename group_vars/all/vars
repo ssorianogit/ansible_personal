@@ -1,0 +1,7 @@
+---
+ssl_certificate: "{{ vault_ssl_certificate }}"
+ssl_private_key: "{{ vault_ssl_private_key }}"
+
+jenkins_admin_password: "{{ vault_jenkins_admin_password }}"
+jenkins_admin_username: "admin"
+

@@ -1,0 +1,41 @@
+---
+# tasks file for nginx
+- name: "Install Apt Packages"
+  apt:
+    name: "{{ item }}"
+    update_cache: "yes"
+    cache_valid_time: 3600
+  with_items:
+    - nginx
+
+- name: "Ensure Nginx Service"
+  service:
+    name: "nginx"
+    state: "started"
+    enabled: "yes"
+
+- name: "Install ssl crt"
+  copy:
+    dest: "/etc/ssl/certs/localhost.crt"
+    content: "{{ ssl_certificate }}"
+    mode: 0600
+    owner: root
+
+- name: "Install private key"
+  copy:
+    dest: "/etc/ssl/private/localhost.key"
+    content: "{{ ssl_private_key }}"
+    mode: 0600
+    owner: root
+
+- name: "Create Default Web Site"
+  template:
+    src: "default"
+    dest: "/etc/nginx/sites-available/default"
+
+- name: "Enable Default Site"
+  file:
+    src: "/etc/nginx/sites-available/default"
+    dest: "/etc/nginx/sites-enabled/default"
+    state: link
+  notify: "reload nginx"

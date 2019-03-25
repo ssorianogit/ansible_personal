@@ -1,0 +1,30 @@
+---
+- name: "Create a jenkins group."
+  group: 
+    name: jenkins 
+    state: present
+
+- name: "Create a jenkins User"
+  user:
+    name: jenkins
+    comment: "Jenkins User"
+    groups: jenkins
+    createhome: no
+    home: /var/lib/jenkins
+    shell: /bin/bash
+ 
+- name: "Create jenkins Home."
+  file:
+    path: /var/lib/jenkins
+    state: directory
+    mode: 0755
+    owner: jenkins
+    group: jenkins
+
+- name: Create custom init scripts directory.
+  file:
+    path: "{{ jenkins_home }}/init.groovy.d"
+    state: directory
+    owner: jenkins
+    group: jenkins
+    mode: 0775

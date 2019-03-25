@@ -1,0 +1,61 @@
+---
+# vars file for jenkins
+jenkins_admin_password_file: ""
+
+jenkins_url: "http://localhost:8080"
+
+jenkins_version: "2.164.1"
+
+jenkins_user: "jenkins"
+jenkins_home: "/var/lib/jenkins"
+
+jenkins_update_url: "https://updates.jenkins-ci.org/update-center.json"
+
+jenkins_cli: "/opt/jenkins-cli.jar"
+
+jenkins_plugins:
+  # Main
+  - email-ext
+  - greenballs
+  - ssh-slaves
+  - windows-slaves
+  - rebuild
+  - global-build-stats
+  - build-timestamp
+  - build-timeout
+  # Pipeline and Jobs
+  - build-pipeline-plugin
+  - delivery-pipeline-plugin
+  - git-parameter
+  - jenkins-multijob-plugin
+  - pipeline-utility-steps
+  - uno-choice
+  - workflow-aggregator
+  # Views
+  - nested-view
+  - view-job-filters
+  - extra-columns
+  # SCMs
+  - git
+  # Tasks
+  - ansicolor
+  - copyartifact
+  - envinject
+  - groovy
+  - job-dsl
+  - ws-cleanup
+  - file-operations
+  # Sonar
+  - sonar
+  # Auth
+  - role-strategy
+  - extended-read-permission
+  # Vars
+  - build-user-vars-plugin
+  # Monitoring
+  - graphiteIntegrator
+
+jenkins_build_packages:
+  - git
+  - groovy
+  - openjdk-8-jdk

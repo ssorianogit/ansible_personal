@@ -1,0 +1,15 @@
+#!/bin/bash
+
+SRC_DIR={{ jenkins_home }}
+DST_DIR=$SRC_DIR-$(date +%Y%m%d)
+
+EXCLUDE_ARGS="--exclude=caches"
+EXCLUDE_ARGS="$EXCLUDE_ARGS --exclude=fingerprints"
+EXCLUDE_ARGS="$EXCLUDE_ARGS --exclude=jobs"
+EXCLUDE_ARGS="$EXCLUDE_ARGS --exclude=logs"
+EXCLUDE_ARGS="$EXCLUDE_ARGS --exclude=workspace"
+
+mkdir -p $DST_DIR
+
+rsync -azv $EXCLUDE_ARGS $SRC_DIR/ $DST_DIR/
+

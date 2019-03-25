@@ -1,0 +1,6 @@
+[user]
+name = Jenkins
+email = samuelsc@gmail.com
+
+[push]
+default = simple

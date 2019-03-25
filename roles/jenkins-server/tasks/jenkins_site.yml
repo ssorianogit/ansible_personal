@@ -1,0 +1,19 @@
+---
+- name: "Copy Jenkins Web Site"
+  template:
+    src:  "jenkins-site"
+    dest: "/etc/nginx/sites-available/jenkins-site"
+  register: nginx_site
+
+- name: "Config Jenkins Sites"
+  file:
+    src: "/etc/nginx/sites-available/jenkins-site"
+    dest: "/etc/nginx/sites-enabled/jenkins-site"
+    state: link
+
+- name: "Immediately reload nginx on config changes."
+  service: 
+    name: nginx 
+    state: reloaded
+  when: nginx_site.changed
+
