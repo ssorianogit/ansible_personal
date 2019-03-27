@@ -1,0 +1,19 @@
+
+- name: "Copy grafana Web Site"
+  template:
+    src:  "grafana-site"
+    dest: "/etc/nginx/sites-available/grafana-site"
+  register: nginx_site
+
+- name: "Config grafana Sites"
+  file:
+    src: "/etc/nginx/sites-available/grafana-site"
+    dest: "/etc/nginx/sites-enabled/grafana-site"
+    state: link
+
+- name: "Immediately reload nginx on config changes."
+  service: 
+    name: nginx 
+    state: reloaded
+  when: nginx_site.changed
+
