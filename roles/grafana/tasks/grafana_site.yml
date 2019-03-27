@@ -1,7 +1,7 @@
 
 - name: "Copy grafana Web Site"
   template:
-    src:  "grafana-site"
+    src:  "grafana-site.j2"
     dest: "/etc/nginx/sites-available/grafana-site"
   register: nginx_site
 
