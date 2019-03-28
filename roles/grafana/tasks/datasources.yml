@@ -1,0 +1,13 @@
+---
+- name: "Configure PostgreSQL datasources"
+  grafana_datasource:
+    name: "PostgreSQL_grafana"
+    grafana_url: "https://{{ grafana_server_name }}"
+    grafana_api_key: "{{ grafana_secret_key }}"
+    org_id: "1"
+    ds_type: "postgres"
+    url: "localhost:5432"
+    database: "grafana"
+    user: "{{ ansible_postgres_user }}"
+    password: "{{ ansible_postgres_password }}"
+    sslmode: disable

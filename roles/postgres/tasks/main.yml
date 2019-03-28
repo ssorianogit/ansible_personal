@@ -4,10 +4,22 @@
     url: "https://www.postgresql.org/media/keys/ACCC4CF8.asc"
     state: present
 
+- name: "Add PostgreSQL pipelinedb key"
+  apt_key:
+    url: "https://packagecloud.io/pipelinedb/pipelinedb/gpgkey"
+    state: present
+
 - name: "Add PostgreSQL repository"
   apt_repository:
     repo: "deb http://apt.postgresql.org/pub/repos/apt/ bionic-pgdg main"
     filename: 'PostgreSQL'
+    state: present
+    update_cache: yes
+
+- name: "Add pipelinedb repository"
+  apt_repository:
+    repo: "deb https://packagecloud.io/pipelinedb/pipelinedb/ubuntu/ bionic main"
+    filename: 'pipelinedb_pipelinedb'
     state: present
     update_cache: yes
 
@@ -20,8 +32,38 @@
     - python-psycopg2
     - python3-psycopg2
     - libpq-dev
+    - "pipelinedb-postgresql-{{ postgres_server_version }}"
+
+- name: "Configure PostgreSQL conf"
+  lineinfile:
+    backup: yes
+    dest: "/etc/postgresql/{{ postgres_server_version }}/main/postgresql.conf"
+    line: "{{ item }}"
+  with_items:
+    - "shared_preload_libraries = 'pipelinedb'"
+    - "max_worker_processes = 128"
+  register: postgres_config
+
+- name: "Restarting PostgreSQL" 
+  service: 
+    name: postgresql 
+    state: restarted
+  when: postgres_config.changed
+
+- name: "Configure pipelinedb extension"
+  become_user: postgres
+  postgresql_ext:
+    name: pipelinedb
+    db: postgres
 
 - name: "PostgreSQL Service started"
   service:
     name: "postgresql"
     state: "started"
+
+- name: "Create ansible user"
+  become_user: postgres
+  postgresql_user:
+    name: "{{ ansible_postgres_user }}"
+    password: "{{ ansible_postgres_password }}"
+    role_attr_flags: SUPERUSER,CREATEROLE,CREATEDB

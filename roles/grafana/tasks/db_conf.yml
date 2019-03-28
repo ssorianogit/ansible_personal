@@ -4,7 +4,7 @@
   postgresql_db:
     name: "{{ grafana_db_name }}"
 
-- name: "create grafana database user"
+- name: "Create grafana database user"
   become_user: postgres
   postgresql_user:
     db: "{{ grafana_db_name }}"
@@ -20,3 +20,9 @@
     line: 'local {{ grafana_db_name }} {{ grafana_db_user }} md5'
   notify:
     - Reload postgres
+
+- name: "Configure pipelinedb extension"
+  become_user: postgres
+  postgresql_ext:
+    name: pipelinedb
+    db: "{{ grafana_db_name }}"
