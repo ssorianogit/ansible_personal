@@ -1,0 +1,29 @@
+---
+- name: "Create grafana database"
+  become_user: postgres
+  postgresql_db:
+    name: "{{ grafana_db_name }}"
+
+- name: "Create grafana database user"
+  become_user: postgres
+  postgresql_user:
+    db: "{{ grafana_db_name }}"
+    name: "{{ grafana_db_user }}"
+    password: "{{ grafana_db_pass }}"
+
+- name: "Configure grafana local authentication"
+  lineinfile:
+    backup: yes
+    dest: "/etc/postgresql/{{ postgres_server_version }}/main/pg_hba.conf"
+    insertbefore: '^local\s+all\s+all\s+peer\s*$'
+    regexp: 'local\s+{{ grafana_db_name }}\s+{{ grafana_db_user }}\s+'
+    line: 'local {{ grafana_db_name }} {{ grafana_db_user }} md5'
+  notify:
+    - Reload postgres
+    - Restart grafana
+
+- name: "Configure pipelinedb extension"
+  become_user: postgres
+  postgresql_ext:
+    name: pipelinedb
+    db: "{{ grafana_db_name }}"

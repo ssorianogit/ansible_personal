@@ -1,0 +1,20 @@
+
+- name: "Configure grafana key"
+  apt_key:
+    url: "https://packages.grafana.com/gpg.key"
+    state: present
+
+- name: "Add Grafana repository"
+  apt_repository:
+    repo: "deb https://packages.grafana.com/oss/deb stable main"
+    filename: 'grafana'
+    state: present
+    update_cache: yes
+
+- name: "Install Grafana"
+  apt:
+    name: "{{ item }}"
+    state: present
+  with_items:
+    - grafana
+    - apt-transport-https

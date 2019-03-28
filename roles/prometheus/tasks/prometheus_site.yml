@@ -1,0 +1,19 @@
+---
+- name: "Copy prometheus Web Site"
+  template:
+    src:  "prometheus-site"
+    dest: "/etc/nginx/sites-available/prometheus-site"
+  register: nginx_site
+
+- name: "Config prometheus Sites"
+  file:
+    src: "/etc/nginx/sites-available/prometheus-site"
+    dest: "/etc/nginx/sites-enabled/prometheus-site"
+    state: link
+
+- name: "Immediately reload nginx on config changes."
+  service: 
+    name: nginx 
+    state: reloaded
+  when: nginx_site.changed
+

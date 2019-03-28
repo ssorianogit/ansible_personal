@@ -1,0 +1,11 @@
+---
+- name: "Configure Grafana"
+  template:
+    src: "grafana.ini.j2"
+    dest: "/etc/grafana/grafana.ini"
+  notify: "Restart grafana"
+
+- name: "Grafana Service started"
+  service:
+    name: "grafana-server"
+    state: "started"

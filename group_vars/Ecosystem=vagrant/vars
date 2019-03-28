@@ -1,0 +1,15 @@
+---
+root_domain: "devops.virgo-ehr.com"
+
+grafana_server_name: "grafana.{{ root_domain }}"
+grafana_secret_key: "{{ vault_grafana_secret_key }}"
+grafana_admin_user: "Administrator"
+grafana_admin_pass: "{{ vault_grafana_admin_pass }}"
+grafana_db_user: "grafana"
+grafana_db_pass: "{{ vault_grafana_db_pass }}"
+grafana_db_name: "grafana"
+
+#PostgreSQL
+ansible_postgres_user: "ansible"
+ansible_postgres_password: "{{ vault_ansible_postgres_password }}"
+postgres_server_version: "11"
