@@ -20,6 +20,7 @@
     line: 'local {{ grafana_db_name }} {{ grafana_db_user }} md5'
   notify:
     - Reload postgres
+    - Restart grafana
 
 - name: "Configure pipelinedb extension"
   become_user: postgres

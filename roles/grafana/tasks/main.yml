@@ -3,5 +3,4 @@
 - import_tasks: configure.yml
 - import_tasks: grafana_site.yml
 - import_tasks: db_conf.yml
-- import_tasks: datasources.yml
 
