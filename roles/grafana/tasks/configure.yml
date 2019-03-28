@@ -3,7 +3,7 @@
   template:
     src: "grafana.ini.j2"
     dest: "/etc/grafana/grafana.ini"
-  notify: "Restart Grafana"
+  notify: "Restart grafana"
 
 - name: "Grafana Service started"
   service:
