@@ -1,0 +1,59 @@
+---
+- name: "Create node_exporter system group"
+  group:
+    name: node_exporter
+    system: true
+    state: present
+
+- name: "Create node_exporter system user"
+  user:
+    name: node_exporter
+    system: true
+    shell: "/sbin/nologin"
+    group: node_exporter
+    createhome: false
+    home: "{{ node_exporter_home }}"
+
+- name: "Create node_exporter dir"
+  file:
+    path: "{{ node_exporter_home }}"
+    owner: node_exporter
+    group: node_exporter
+    state: directory
+    mode: 0770
+
+
+- name: "Download node_exporter"
+  become: false
+  get_url:
+    url: "https://github.com/prometheus/node_exporter/releases/download/v{{ node_exporter_version }}/node_exporter-{{ node_exporter_version }}.linux-amd64.tar.gz"
+    dest: "/tmp/node_exporter.tar.gz"
+  register: _download_archive
+  until: _download_archive is succeeded
+  retries: 5
+  delay: 2
+
+- name: "Unpack node_exporter binaries"
+  unarchive:
+    src: "/tmp/node_exporter.tar.gz"
+    dest: "/opt/node_exporter"
+    remote_src: yes
+    extra_opts: [--strip-components=1]
+
+- name: "Create system syslink"
+  file:
+    src: "{{ node_exporter_home }}/node_exporter"
+    dest: /usr/local/bin/node_exporter
+    owner: node_exporter
+    group: node_exporter
+    state: link
+
+- name: "Create systemd service unit"
+  template:
+    src: node_exporter.service.j2
+    dest: /etc/systemd/system/node_exporter.service
+    owner: root
+    group: root
+    mode: 0755
+  notify:
+    - start_node_exporter
