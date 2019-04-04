@@ -1,2 +1,104 @@
 ---
-# defaults file for prometheus
+prometheus_version: 2.8.0
+prometheus_alertmanager_version: 0.16.1
+
+prometheus_config_dir: /etc/prometheus
+prometheus_config_file: 'prometheus.yml.j2'
+prometheus_db_dir: /var/lib/prometheus
+
+prometheus_web_listen_address: "0.0.0.0:9090"
+prometheus_web_external_url: ''
+
+prometheus_storage_retention: "30d"
+prometheus_storage_retention_size: "0"
+
+prometheus_config_flags_extra: {}
+
+prometheus_alert_rules_files:
+  - prometheus/rules/*.rules
+
+prometheus_targets: {}
+
+prometheus_static_targets_files:
+  - prometheus/targets/*.yml
+  - prometheus/targets/*.json
+
+prometheus_global:
+  scrape_interval: 15s
+  scrape_timeout: 10s
+  evaluation_interval: 15s
+
+prometheus_external_labels:
+  environment: "{{ ansible_fqdn | default(ansible_host) | default(inventory_hostname) }}"
+
+prometheus_alertmanager_config: 
+  - static_configs:
+    - targets: ["127.0.0.1:9093"]
+
+prometheus_alert_relabel_configs: []
+
+prometheus_remote_write: []
+prometheus_remote_read: []
+
+prometheus_scrape_configs:
+  - job_name: "prometheus"
+    metrics_path: "{{ prometheus_metrics_path }}"
+    static_configs:
+      - targets:
+          - "{{ ansible_fqdn | default(ansible_host) | default('localhost') }}:9090"
+  - job_name: "node"
+    file_sd_configs:
+      - files:
+          - "{{ prometheus_config_dir }}/file_sd/node.yml"
+
+  - job_name: "jenkins"
+    metrics_path: "{{ prometheus_metrics_path }}"
+    static_configs:
+      - targets:
+        - 192.168.0.100:9100
+    relabel_configs:
+    - source_labels: [__address__]
+      regex: '.*'
+      target_label: 'instance'
+      replacement: 'jenkins'
+
+prometheus_alert_rules:
+  - alert: InstanceDown
+    expr: "up == 0"
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      description: "{% raw %}{{ $labels.instance }} of job {{ $labels.job }} has been down for more than 5 minutes.{% endraw %}"
+      summary: "{% raw %}Instance {{ $labels.instance }} down{% endraw %}"
+  - alert: CriticalCPULoad
+    expr: '100 - (avg by (instance) (irate(node_cpu_seconds_total{job="node",mode="idle"}[5m])) * 100) > 96'
+    for: 2m
+    labels:
+      severity: critical
+    annotations:
+      description: "{% raw %}{{ $labels.instance }} of job {{ $labels.job }} has Critical CPU load for more than 2 minutes.{% endraw %}"
+      summary: "{% raw %}Instance {{ $labels.instance }} - Critical CPU load{% endraw %}"
+  - alert: CriticalRAMUsage
+    expr: '(1 - ((node_memory_MemFree_bytes + node_memory_Buffers_bytes + node_memory_Cached_bytes) / node_memory_MemTotal_bytes)) * 100 > 98'
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      description: "{% raw %}{{ $labels.instance }} has Critical Memory Usage more than 5 minutes.{% endraw %}"
+      summary: "{% raw %}Instance {{ $labels.instance }} has Critical Memory Usage{% endraw %}"
+  - alert: CriticalDiskSpace
+    expr: 'node_filesystem_free_bytes{job="node",filesystem!~"^/run(/|$)"} / node_filesystem_size_bytes{job="node"} < 0.1'
+    for: 4m
+    labels:
+      severity: critical
+    annotations:
+      description: "{% raw %}{{ $labels.instance }} of job {{ $labels.job }} has less than 10% space remaining.{% endraw %}"
+      summary: "{% raw %}Instance {{ $labels.instance }} - Critical disk space usage{% endraw %}"
+  - alert: RebootRequired
+    expr: "node_reboot_required > 0"
+    labels:
+      severity: warning
+    annotations:
+      description: "{% raw %}{{ $labels.instance }} requires a reboot.{% endraw %}"
+      summary: "{% raw %}Instance {{ $labels.instance }} - reboot required{% endraw %}"

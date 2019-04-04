@@ -1,6 +1,7 @@
 server {
   listen 443 ssl;
-  server_name prometheus.devops.virgo-ehr.com;
+  server_name prometheus.{{ root_domain }};
+
 
   access_log            /var/log/nginx/prometheus.access.log;
   error_log             /var/log/nginx/prometheus.error.log;
@@ -8,16 +9,22 @@ server {
   ssl_certificate /etc/ssl/certs/localhost.crt;
   ssl_certificate_key /etc/ssl/private/localhost.key;
 
+  proxy_set_header        Host $host:$server_port;
+  proxy_set_header        X-Real-IP $remote_addr;
+  proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
+  proxy_set_header        X-Forwarded-Proto $scheme;
+  proxy_redirect http:// https://;
+  proxy_http_version 1.1;
+  proxy_request_buffering off;
+  proxy_buffering off; # Required for HTTP-based CLI to work over SSL
+
   location / {
-    proxy_set_header        Host $host:$server_port;
-    proxy_set_header        X-Real-IP $remote_addr;
-    proxy_set_header        X-Forwarded-For $proxy_add_x_forwarded_for;
-    proxy_set_header        X-Forwarded-Proto $scheme;
-    proxy_redirect http:// https://;
     proxy_pass              http://localhost:9090;
-    # Required for new HTTP-based CLI
-    proxy_http_version 1.1;
-    proxy_request_buffering off;
-    proxy_buffering off; # Required for HTTP-based CLI to work over SSL
+
+  }
+
+  location ^~ /alertmanager/ {
+    rewrite ^/alertmanager/(.*)$ /$1 break;
+    proxy_pass              http://localhost:9093/;
   }
 }

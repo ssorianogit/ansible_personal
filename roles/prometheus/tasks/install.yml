@@ -91,3 +91,10 @@
     mode: 0644
   notify:
     - restart prometheus
+
+- name: "Enable prometheus service"
+  systemd:
+    name: prometheus
+    daemon_reload: yes
+    state: started
+    enabled: yes
