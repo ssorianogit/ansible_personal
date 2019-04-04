@@ -57,3 +57,10 @@
     mode: 0755
   notify:
     - start_node_exporter
+
+- name: "Enable node_exporter service"
+  systemd:
+    name: node_exporter
+    daemon_reload: yes
+    state: started
+    enabled: yes
