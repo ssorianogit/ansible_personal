@@ -9,3 +9,10 @@
   service:
     name: "grafana-server"
     state: "started"
+
+- name: "Enable prometheus service"
+  systemd:
+    name: grafana-server
+    daemon_reload: yes
+    state: started
+    enabled: yes

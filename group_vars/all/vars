@@ -5,3 +5,7 @@ ssl_private_key: "{{ vault_ssl_private_key }}"
 jenkins_admin_password: "{{ vault_jenkins_admin_password }}"
 jenkins_admin_username: "admin"
 
+smtp_host: "smtp.gmail.com"
+smtp_user: "samuelsc@gmail.com"
+smtp_pass: "{{ vault_smtp_pass }}"
+smtp_port: 587

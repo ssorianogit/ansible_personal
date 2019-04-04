@@ -1,0 +1,82 @@
+---
+- name: "Create alertmanager system group"
+  group:
+    name: alertmanager
+    system: true
+    state: present
+
+- name: "Create alertmanagersystem user"
+  user:
+    name: alertmanager
+    system: true
+    shell: "/sbin/nologin"
+    group: alertmanager
+    createhome: false
+
+- name: "Create alertmanager prometheus configuration directories"
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: alertmanager
+    group: alertmanager
+    mode: 0770
+  with_items:
+    - "/etc/alertmanager"
+    - "/etc/alertmanager/template"
+    - "/var/lib/alertmanager/data"
+
+- name: "Download alertmanager to local folder"
+  become: false
+  get_url:
+    url: "https://github.com/prometheus/alertmanager/releases/download/v{{ prometheus_alertmanager_version }}/alertmanager-{{ prometheus_alertmanager_version }}.linux-amd64.tar.gz"
+    dest: "/tmp/alertmanager-{{ prometheus_alertmanager_version }}.linux-amd64.tar.gz"
+  register: _download_archive
+  until: _download_archive is succeeded
+  retries: 5
+  delay: 2
+  delegate_to: localhost
+  check_mode: false
+
+- name: "Unpack alertmanager"
+  become: false
+  unarchive:
+    src: "/tmp/alertmanager-{{ prometheus_alertmanager_version }}.linux-amd64.tar.gz"
+    dest: "/tmp"
+    creates: "/tmp/alertmanager-{{ prometheus_alertmanager_version}}.linux-amd64/alertmanager"
+  delegate_to: localhost
+  check_mode: false
+
+- name: "Propagate alertmanager and amtool binaries"
+  copy:
+    src: "/tmp/alertmanager-{{ prometheus_alertmanager_version }}.linux-amd64/{{ item }}"
+    dest: "/usr/local/bin/{{ item }}"
+    mode: 0755
+    owner: root
+    group: root
+  with_items:
+    - alertmanager
+    - amtool
+
+- name: "Create alertmanager config"
+  template:
+    src: alertmanager.yml.j2
+    dest: /etc/alertmanager/alertmanager.yml
+    owner: root
+    group: alertmanager
+    mode: 0644
+
+
+- name: "Create systemd service unit"
+  template:
+    src: alertmanager.service.j2
+    dest: /etc/systemd/system/alertmanager.service
+    owner: root
+    group: root
+    mode: 0644
+
+- name: "Enable alertmanager service"
+  systemd:
+    name: alertmanager
+    daemon_reload: yes
+    state: started
+    enabled: yes
