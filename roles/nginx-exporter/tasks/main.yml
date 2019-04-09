@@ -1,0 +1,43 @@
+---
+
+- name: "Install Apt Packages"
+  apt:
+    name: "{{ item }}"
+    update_cache: "yes"
+    cache_valid_time: 3600
+  with_items:
+    - libnginx-mod-http-lua
+  notify: "restart nginx"
+
+- name: "Create nginx_exporter path"
+  file:
+    path: "{{ nginx_exporter_path }}"
+    state: directory
+    mode: 0770
+
+- name: "Copy nginx lua prometheus"
+  copy:
+    src: "{{ item }}"
+    dest: "{{ nginx_exporter_path }}"
+  with_items:
+    - "dist.ini"
+    - "nginx-lua-prometheus-0.20181120-2.rockspec"
+    - "prometheus.lua"
+    - "prometheus_test.lua"
+
+- name: "Create nginx config"
+  template:
+    src: "nginx-exporter.conf.j2"
+    dest: "/etc/nginx/conf.d/nginx-exporter.conf"
+
+- name: "Create Metrics Site"
+  template:
+    src: "nginx-exporter-site.j2"
+    dest: "/etc/nginx/sites-available/nginx-exporter"
+
+- name: "Enable Metrics Site"
+  file:
+    src: "/etc/nginx/sites-available/nginx-exporter"
+    dest: "/etc/nginx/sites-enabled/nginx-exporter"
+    state: link
+  notify: "reload nginx"

@@ -6,3 +6,4 @@
     - { role: nginx }
     - { role: jenkins-server }
     - { role: node-exporter }
+    - { role: nginx-exporter }
